@@ -1,0 +1,66 @@
+<?php
+// db_config.php - configure your database connection
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "test_db";
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) {
+    die("Connection failed: " . $conn->connect_error);
+}
+?>
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Database Website</title>
+    <meta charset="UTF-8" />
+</head>
+<body>
+    <h2>Add a User</h2>
+    <form method="POST">
+        <label>Name:</label>
+        <input type="text" name="name" required /> <br><br>
+
+        <label>Email:</label>
+        <input type="email" name="email" required /> <br><br>
+
+        <button type="submit" name="submit">Add User</button>
+    </form>
+
+    <hr>
+    <h2>Existing Users</h2>
+    <?php
+    include 'db_config.php';
+
+    if (isset($_POST['submit'])) {
+        $name = $_POST['name'];
+        $email = $_POST['email'];
+
+        $stmt = $conn->prepare("INSERT INTO users (name, email) VALUES (?, ?)");
+        $stmt->bind_param("ss", $name, $email);
+        $stmt->execute();
+        echo "<p>User added!</p>";
+    }
+
+    $result = $conn->query("SELECT * FROM users");
+
+    if ($result->num_rows > 0) {
+        echo "<table border='1' cellpadding='8'>";
+        echo "<tr><th>ID</th><th>Name</th><th>Email</th></tr>";
+
+        while ($row = $result->fetch_assoc()) {
+            echo "<tr>";
+            echo "<td>" . $row['id'] . "</td>";
+            echo "<td>" . $row['name'] . "</td>";
+            echo "<td>" . $row['email'] . "</td>";
+            echo "</tr>";
+        }
+
+        echo "</table>";
+    } else {
+        echo "<p>No users found.</p>";
+    }
+    ?>
+</body>
+</html>
